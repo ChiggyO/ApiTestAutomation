@@ -1,16 +1,16 @@
 package common;
 
-public class userModel {
+public class users {
 
-    private int userId;
+    private int id;
     private String name;
     private String username;
 
     public int getId() {
-        return userId;
+        return id;
     }
     public void setId(int id) {
-        this.userId = id;
+        this.id = id;
     }
     public String getName() {
         return name;
