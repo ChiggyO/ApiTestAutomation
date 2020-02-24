@@ -1,30 +1,24 @@
 package tests;
 
-
 import com.jayway.jsonpath.JsonPath;
 import org.testng.Reporter;
 import org.testng.annotations.BeforeTest;
 
-import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
+import static common.endPoints.*;
 import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.given;
 
-//import io.restassured.path.json.JsonPath;
 
+@SuppressWarnings("SuspiciousToArrayCall")
 public class baseApiTest {
 
-    protected final String validEmailRegex = "^[a-zA-Z0-9_+&*-]+(?:\\." + "[a-zA-Z0-9_+&*-]+)*@" +
-            "(?:[a-zA-Z0-9-]+\\.)+[a-z" + "A-Z]{2,7}$";
-
-    protected final static String userPath = "/users";
-    protected static final String postsPath = "/posts/";
-    protected final String commentsPath = "/posts/3/comments";
-    protected final String invalidPath = "/userrs";
-    protected final String postPath = "/search/request";
+    protected final static String regex = "^[\\w-_\\.+]*[\\w-_\\.]\\@([\\w]+\\.)+[\\w]+[\\w]$";
 
     @BeforeTest
     public void beforeTest() {
@@ -33,20 +27,15 @@ public class baseApiTest {
     }
 
 
-    public static String getUser(String UserName) throws RuntimeException {
+    public static String getUser(String testUser) throws RuntimeException {
 
         String userResponse = given().
                 when().get(userPath).
                 then().extract().asString();
 
-        List<Object> userList = JsonPath.parse(userResponse)
-                .read("$.[?(@.username=='" + UserName + "')].username");
+        List<Object> userList = JsonPath.parse(userResponse).
+                read("$.[?(@.username=='" + testUser + "')].username");
 
-        boolean validUser = userList.contains(UserName);
-        if (validUser) {
-            Reporter.log(UserName + " is a valid user", true);
-        } else
-            throw new RuntimeException("User does not exist");
         return String.valueOf(userList.get(0));
     }
 
@@ -58,18 +47,11 @@ public class baseApiTest {
                 when().get(userPath).
                 then().extract().asString();
 
-
         List<Object> userIdList = JsonPath.parse(userResponse)
                 .read("$[?(@.username == '" + userName + "')].id");
 
-        if (userIdList == null || userIdList.isEmpty()) {
-            // return -1;
-            Reporter.log(" User not valid ", true);
-        }
-        assert userIdList != null;
         id = (Integer) userIdList.get(0);
 
-        Reporter.log(" User id for user" + userName + " is: " + id, true);
 
         return id;
     }
@@ -79,35 +61,67 @@ public class baseApiTest {
                 when().get(postsPath).
                 then().extract().asString();
 
+        ArrayList<String> postsList = new ArrayList<String>();
 
         List<Object> postIdsList = JsonPath.parse(postResponse)
                 .read("$[?(@.userId == " + userId + ")].id");
 
-        Integer[] postIds = postIdsList.toArray(new Integer[0]);
+        //Reporter.log(" Posts for " + userId + " : " + postResponse, true);
 
-        Reporter.log(" Post Ids for" + userId + "  is: " + Arrays.toString(postIds), true);
 
-        return postIds;
+        return postIdsList.toArray(new Integer[0]);
 
     }
 
-    public static List<String> getComments(Integer[] postId) {
-        ArrayList<String> postsList = new ArrayList<String>();
+    public static ArrayList<String> getComments(Integer[] postId) {
+
+        //Reporter.log(" The response returned is:" + commentsResponse, true);
 
         String commentsResponse = given().
-                when().get(postsPath).
+                when().get(commentsPath).
                 then().extract().asString();
 
 
-        for (int ptIds : postId) {
-            List<Object> commentsList = JsonPath.parse(commentsResponse)
-                    .read("$[?(@.postId == " + ptIds + ")].body");
-            String postComment = String.valueOf(commentsList);
+        ArrayList<String> commentsList = new ArrayList<String>();
 
-            Reporter.log(" Comments for user's posts are listed  below", true);
+        for (int pIds : postId) {
+            List<Object> fetchComments = com.jayway.jsonpath.JsonPath.parse(commentsResponse)
+                    .read("$[?(@.postId == " + pIds + ")].body");
 
-            postsList.add(postComment);
+            String postComments = String.valueOf(fetchComments);
+
+            commentsList.add(postComments);
+            System.out.println("List of Post Ids" + pIds);
         }
-        return postsList;
+
+
+        return commentsList;
+    }
+
+
+    public static ArrayList<String> getValidEmailAddress(Integer[] PostId) {
+
+        ArrayList<String> emailList = new ArrayList<String>();
+
+        String emailResponse = given().
+                when().get(commentsPath).
+                then().extract().asString();
+
+
+
+
+        for (int pIds : PostId) {
+            List<String> getEmailAddress = com.jayway.jsonpath.JsonPath.parse(emailResponse)
+                    .read("$[?(@.postId == " + pIds + ")].email");
+            Pattern pattern = Pattern.compile(regex);
+
+           // String postEmails = String.valueOf(getEmailAddress);
+
+            for (String email : getEmailAddress) {
+                Matcher matcher = pattern.matcher(email);
+                System.out.println(email + " is valid:  " + matcher.matches());
+            }
+        }
+        return emailList;
     }
 }

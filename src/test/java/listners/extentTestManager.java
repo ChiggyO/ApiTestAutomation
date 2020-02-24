@@ -8,8 +8,8 @@ import java.util.Map;
 
 public class extentTestManager {
 
-        static Map<Integer, ExtentTest> extentTestMap = new HashMap<Integer, ExtentTest>();
-        static ExtentReports extent = extentManager.getReporter();
+        static final Map<Integer, ExtentTest> extentTestMap = new HashMap<Integer, ExtentTest>();
+        static final ExtentReports extent = extentManager.getReporter();
 
         public static synchronized ExtentTest getTest() {
             return extentTestMap.get((int) Thread.currentThread().getId());
@@ -19,8 +19,8 @@ public class extentTestManager {
             extent.endTest(extentTestMap.get((int) Thread.currentThread().getId()));
         }
 
-        public static synchronized ExtentTest startTest(String testName) {
-            return startTest(testName, "");
+        public static synchronized void startTest(String testName) {
+            startTest(testName, "");
         }
 
         public static synchronized ExtentTest startTest(String testName, String desc) {

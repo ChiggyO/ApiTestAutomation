@@ -1,23 +1,12 @@
 package tests;
 
-import com.google.gson.Gson;
-import common.userPostComments;
-import common.userPosts;
-import common.users;
-import io.restassured.RestAssured;
+import common.endPoints;
 import io.restassured.http.ContentType;
-import io.restassured.http.Method;
-import io.restassured.response.Response;
-import io.restassured.specification.RequestSpecification;
-import org.apache.commons.validator.routines.EmailValidator;
-import org.apache.poi.xssf.model.Comments;
-import org.json.simple.parser.ParseException;
-import org.testng.Assert;
 import org.testng.Reporter;
-import org.testng.annotations.BeforeTest;
 import org.testng.annotations.Test;
 
-import java.util.List;
+import java.util.ArrayList;
+import java.util.Arrays;
 
 import static io.restassured.RestAssured.baseURI;
 import static io.restassured.RestAssured.given;
@@ -26,67 +15,68 @@ import static org.testng.Assert.assertNotNull;
 
 public class jsonPlaceHolderApiTest extends baseApiTest {
 
-    int userIdFound;
     protected final String userUnderTest = "Samantha";
-    protected final String userPath = "/users";
-    protected final String postsPath = "/posts/";
-    protected final String commentsPath = "/posts/3/comments";
-    protected final String invalidPath = "/userrs";
-    protected final String postPath = "/search/request";
+    protected int userUnderTestId;
 
 
 
     @Test(priority = 1)
     public void testApiReachable() {
         given().contentType(ContentType.JSON).
-                when().get(userPath).
+                when().get().
                 then().statusCode(200);
 
-        Reporter.log("The Api Enpoint ( " + baseURI + userPath + " ) is reachable.", true);
+        Reporter.log("The Api Endpoint ( " + baseURI + " ) is reachable.", true);
     }
 
 
     @Test(priority = 2)
-    public void confirmUserExists()  {
-        boolean userFound = false;
+    public void getUserDetails() {
+        String confirmUser = getUser(userUnderTest);
+        int userId = getUserId(userUnderTest);
+        //int userId = getUserId(userUnderTestId);
+        assertNotNull(confirmUser);
+        assertEquals(confirmUser, userUnderTest);
 
-        String response = given().
-                when().get(userPath).
-                then().extract().asString();
+        Reporter.log(userUnderTest + " is a valid user name", true);
 
-        Reporter.log("The response returned is: " + response, true);
+        Reporter.log("User id for user name " + userUnderTest + " is: " + userId, true);
 
-        Gson responseBody = new Gson();
-        users[] userObj;
-        userObj = responseBody.fromJson(response, users[].class);
-
-        for (common.users users : userObj) {
-            if (users.getUsername().equals(userUnderTest)) {
-                //userFound=true;
-                userIdFound = users.getId();
-                System.out.println(userIdFound);
-
-            }
-        }
-        Reporter.log("The userId for " + userUnderTest + " is :" + userIdFound, true);
+        Reporter.log("User details successfully returned", true);
     }
 
     @Test(priority = 3)
-    public void confirmUserPosts() {
+    public void getUserPosts() {
 
-        String response = given().param("userId", 3).
-                when().get(postsPath).
-                then().extract().asString();
+        int userId = getUserId(userUnderTest);
+        Integer[] postId = getPostId(userId);
+        assertNotNull(postId);
 
-        Gson responseBody = new Gson();
-        userPosts[] posts;
-        posts = responseBody.fromJson(response, userPosts[].class);
-        for (userPosts post : posts) {
-            assertEquals(post.getUserId(), 3);
-        }
-        Reporter.log("The posts for "+userUnderTest+ " are: " + response, true);
+        //Reporter.log(" Post Ids for" + userId + "  is: " + Arrays.toString(postId), true);
+
+        Reporter.log("User posts successfully returned", true);
 
     }
 
 
+    @Test(priority = 4)
+    public void getPostComments() {
+
+        int userId = baseApiTest.getUserId(userUnderTest);
+        Integer[] postId = baseApiTest.getPostId(userId);
+        assertNotNull(getComments(postId));
+        Reporter.log("User post comments successfully returned", true);
+
+
+    }
+
+    @Test(priority = 5)
+    public void validateCommentsEmail() {
+
+        int userId = baseApiTest.getUserId(userUnderTest);
+        Integer[] postId = baseApiTest.getPostId(userId);
+        ArrayList<String> emailList = getValidEmailAddress(postId);
+        assertNotNull(emailList);
+        Reporter.log("Email format successfully confirmed", true);
+    }
 }
