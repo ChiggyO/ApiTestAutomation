@@ -1,6 +1,5 @@
 package tests;
 
-import common.endPoints;
 import io.restassured.http.ContentType;
 import org.testng.Reporter;
 import org.testng.annotations.Test;
@@ -17,7 +16,6 @@ public class jsonPlaceHolderApiTest extends baseApiTest {
 
     protected final String userUnderTest = "Samantha";
     protected int userUnderTestId;
-
 
 
     @Test(priority = 1)
@@ -52,7 +50,7 @@ public class jsonPlaceHolderApiTest extends baseApiTest {
         Integer[] postId = getPostId(userId);
         assertNotNull(postId);
 
-        //Reporter.log(" Post Ids for" + userId + "  is: " + Arrays.toString(postId), true);
+        Reporter.log("Post Ids for userId " + userId + " is: " + Arrays.toString(postId), true);
 
         Reporter.log("User posts successfully returned", true);
 

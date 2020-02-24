@@ -23,10 +23,9 @@ public class extentTestManager {
             startTest(testName, "");
         }
 
-        public static synchronized ExtentTest startTest(String testName, String desc) {
+        public static synchronized void startTest(String testName, String desc) {
             ExtentTest test = extent.startTest(testName, desc);
             extentTestMap.put((int) Thread.currentThread().getId(), test);
 
-            return test;
         }
     }
